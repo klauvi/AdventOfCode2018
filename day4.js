@@ -15,8 +15,8 @@ const input = getData();
 let guards = {};
 let currentGuard = '';
 let fellAsleep = 0;
-let sleeping = false;
 
+// Load guards object for both parts
 input.forEach(log => {
   const parts = log.split(']');
   const [date, time] = parts[0].split('[')[1].split(' ');
@@ -26,39 +26,35 @@ input.forEach(log => {
     case 'Guard': {
       currentGuard = id;
       if (!guards[id]) {
-        guards[id] = { total: 0, id: id.split('#').map(Number)[1] };
+        // First seen, init guard object, storing id as number for later use
+        guards[id] = { minutes: {}, total: 0, id: id.split('#').map(Number)[1] };
       }
       break;
     }
     case 'falls':
       fellAsleep = minutes;
-      if (hours > 0) {
-        console.log('Crap', log);
-      }
-      if (currentGuard === '') {
-        console.log('No guard found');
-      } else {
-        guards[currentGuard][date] = [];
-      }
-      sleeping = true;
       break;
     case 'wakes': {
-      if (currentGuard === '') {
-        console.log('No guard found');
-      } else if (!sleeping) {
-        console.log('Guard wakes up before falling asleep');
-      } else {
-        for (let i = fellAsleep; i < minutes; i++) {
-          guards[currentGuard][date].push(i);
-          guards[currentGuard].total++;
-        }
-        sleeping = false;
+      for (let i = fellAsleep; i < minutes; i++) {
+        guards[currentGuard].total++;
+        guards[currentGuard].minutes[i]
+          ? guards[currentGuard].minutes[i]++
+          : (guards[currentGuard].minutes[i] = 1);
       }
       break;
     }
   }
 });
 
+// Helper function for both parts, gets most frequent minute
+const getMinute = obj =>
+  Object.keys(obj).reduce(
+    (acc, minute) =>
+      obj[minute] > acc.count ? { minute: parseInt(minute), count: obj[minute] } : acc,
+    { minute: 0, count: 0 }
+  );
+
+// Find guard with longest total sleep
 const maxSleep = Object.keys(guards).reduce(
   (acc, id) => {
     return guards[id].total > acc.total ? guards[id] : acc;
@@ -66,28 +62,29 @@ const maxSleep = Object.keys(guards).reduce(
   { total: 0 }
 );
 
-let minuteObject = {};
-
-Object.keys(maxSleep).forEach(key => {
-  if (!(typeof maxSleep[key] === 'number') && maxSleep[key].length > 0) {
-    maxSleep[key].forEach(minute =>
-      minuteObject[minute] ? minuteObject[minute]++ : (minuteObject[minute] = 1)
-    );
-  }
-});
-
-const theMinute = Object.keys(minuteObject).reduce(
-  (acc, minute) =>
-    minuteObject[minute] > acc.count
-      ? { minute: parseInt(minute), count: minuteObject[minute] }
-      : acc,
-  { minute: 0, count: 0 }
-);
+const theMinute = getMinute(maxSleep.minutes);
 
 console.log(theMinute, maxSleep.id);
 console.log('Answer1:', theMinute.minute * maxSleep.id);
 
 const int = new Date().getTime();
+
+// Part 2: Find guard with most consistent minute slept
+const mostConsistent = Object.keys(guards).reduce(
+  (acc, key) => {
+    const { minute, count } = getMinute(guards[key].minutes);
+    const id = guards[key].id;
+    return count > acc.count ? { id, minute, count } : acc;
+  },
+  {
+    id: 0,
+    minute: 0,
+    count: 0
+  }
+);
+
+console.log(mostConsistent);
+console.log('Answer2:', mostConsistent.id * mostConsistent.minute);
 
 const end = new Date().getTime();
 
@@ -96,9 +93,11 @@ console.log(`First part in ${int - start}ms`);
 console.log(`Second part in ${end - int}ms`);
 
 /*
-Answer1: 118840
-Answer2: #919
-Finished in 659ms
-First part in 589ms
-Second part in 70ms
+{ minute: 44, count: 13 } 499
+Answer1: 21956
+{ id: 3449, minute: 39, count: 16 }
+Answer2: 134511
+Finished in 16ms
+First part in 16ms
+Second part in 0ms
 */

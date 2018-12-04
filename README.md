@@ -33,3 +33,7 @@ Node 10 plain JS
   - Finished in 659ms
   - First part in 589ms
   - Second part in 70ms
+- Day 4
+  - Finished in 16ms
+  - First part in 16ms
+  - Second part in 0ms
