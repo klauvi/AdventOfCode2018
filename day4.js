@@ -18,10 +18,8 @@ let fellAsleep = 0;
 
 // Load guards object for both parts
 input.forEach(log => {
-  const parts = log.split(']');
-  const [date, time] = parts[0].split('[')[1].split(' ');
+  const [date, time, status, id] = log.replace(/\[|\]/g, '').split(' ');
   const [hours, minutes] = time.split(':').map(Number);
-  const [blank, status, id] = parts[1].split(' ');
   switch (status) {
     case 'Guard': {
       currentGuard = id;
