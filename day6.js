@@ -43,8 +43,8 @@ const [minx, miny, maxx, maxy] = input.reduce(
   [Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, 0, 0]
 );
 
-for (let j = minx; j <= maxx; j++) {
-  for (let i = miny; i <= maxy; i++) {
+for (let i = minx; i <= maxx; i++) {
+  for (let j = miny; j <= maxy; j++) {
     const line = `${i}, ${j}`;
     if (!grid[line]) {
       const closest = findClosest(i, j, points);
@@ -65,6 +65,24 @@ console.log('Answer1:', answer1);
 
 const int = new Date().getTime();
 
+let answer2 = 0;
+
+Object.keys(grid).forEach(gridKey => {
+  let total = 0;
+  const unsafe = Object.keys(points).some(pointKey => {
+    const distance =
+      Math.abs(grid[gridKey].x - points[pointKey].x) +
+      Math.abs(grid[gridKey].y - points[pointKey].y);
+    total += distance;
+    return total > 9999;
+  });
+  if (!unsafe) {
+    answer2++;
+  }
+});
+
+console.log('Answer2:', answer2);
+
 const end = new Date().getTime();
 
 console.log(`Finished in ${end - start}ms`);
@@ -72,4 +90,9 @@ console.log(`First part in ${int - start}ms`);
 console.log(`Second part in ${end - int}ms`);
 
 /*
+Answer1: 5975
+Answer2: 38670
+Finished in 878ms
+First part in 459ms
+Second part in 419ms
  */
