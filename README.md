@@ -49,3 +49,5 @@ Node 10 plain JS
   - Finished in 9ms
   - First part in 4ms
   - Second part in 5ms
+- Day 8
+  - Finished in 14ms

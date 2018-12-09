@@ -1,4 +1,5 @@
 const fs = require('fs');
+const Tree = require('./tree');
 
 const start = new Date().getTime();
 
@@ -14,60 +15,61 @@ const input = getData();
 
 // const input = [2, 3, 0, 3, 10, 11, 12, 1, 1, 0, 1, 99, 2, 1, 1, 2];
 
-let meta = [];
-let children = [];
-let next = 'child';
-let hasChildren = false;
+let i = 0;
+const root = new Tree(input[i++], input[i++]);
+let current = root;
+let parent;
+let total = 0;
 
-const answer1 = input.reduce((acc, num) => {
-  if (next === 'child') {
-    next = 'meta';
-    if (num > 0) {
-      // store child count if there are children
-      children.push(num);
-      hasChildren = true;
+const getMetadata = meta => {
+  const metadata = input.slice(i, i + meta);
+  i += meta;
+  return { total: metadata.reduce((acc, val) => (acc += val), 0), array: metadata };
+};
+
+while (i < input.length) {
+  if (current.isRoot() && current.isChildrenFull()) {
+    const metadata = input.slice(i, input.length);
+    current.value = metadata.reduce((acc, index) => (acc += current.getMetaValue(index)), 0);
+    total += metadata.reduce((acc, val) => (acc += val), 0);
+    break;
+  }
+  if (!current.isChildrenFull()) {
+    // going down
+    const children = input[i++];
+    const meta = input[i++];
+    const child = new Tree(children, meta, current);
+    current.addChild(child);
+    if (children === 0) {
+      const metadata = getMetadata(meta);
+      child.value = metadata.total;
+      current.addMetaValue(metadata.total);
+      total += metadata.total;
     } else {
-      hasChildren = false;
-    }
-  } else if (next === 'meta') {
-    // store meta count
-    meta.push(num);
-    if (hasChildren) {
-      next = 'child';
-    } else {
-      next = 'data';
+      parent = current;
+      current = child;
     }
   } else {
-    // next is data
-    acc += num;
-    let metaCount = meta.pop();
-    if (--metaCount > 0) {
-      // There is more metadata
-      meta.push(metaCount);
-    } else {
-      let nextChild = children.pop();
-      if (--nextChild > 0) {
-        children.push(nextChild);
-        next = 'child';
-      }
-    }
+    // finish current
+    const metadata = getMetadata(current.metaCount);
+    current.value = metadata.array.reduce((acc, index) => (acc += current.getMetaValue(index)), 0);
+    total += metadata.total;
+    parent = current.getParent();
+    parent.addMetaValue(current.value);
+    // going up
+    current = parent;
   }
-  return acc;
-}, 0);
+}
 
-console.log('Answer1:', answer1);
-
-const int = new Date().getTime();
-
-// insert part2 here, remember to refactor part1 to help with part2 solution 😊
-
-console.log('Answer2:');
+console.log('Answer1:', total);
+console.log('Answer2:', current.value);
 
 const end = new Date().getTime();
 
 console.log(`Finished in ${end - start}ms`);
-console.log(`First part in ${int - start}ms`);
-console.log(`Second part in ${end - int}ms`);
 
 /*
+Answer1: 48496
+Answer2: 32850
+Finished in 14ms
  */
