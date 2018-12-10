@@ -29,12 +29,39 @@ const points = input.reduce((acc, line) => {
   return [...acc, match.groups];
 }, []);
 
-let time = 1;
-let reachedZero = false;
+let time = 0;
+let smallestGap = Number.MAX_SAFE_INTEGER;
 
 while (true) {
-  minx = 0;
-  miny = 0;
+  if (smallestGap > maxy - miny) {
+    // Message is getting smaller but is still too big
+    smallestGap = maxy - miny;
+  } else {
+    // revert last time change because we're past fewest lines in message
+    points.forEach(point => {
+      point.x -= point.vx;
+      point.y -= point.vy;
+    });
+    time--;
+    // draw canvas
+    const canvas = [];
+    for (let i = miny; i <= maxy; i++) {
+      canvas[i] = ['.'];
+      for (let j = minx; j <= maxx; j++) {
+        canvas[i][j] = '.';
+      }
+    }
+    points.forEach(point => {
+      canvas[point.y][point.x] = '#';
+    });
+    console.log('Answer1:');
+    canvas.forEach(line => console.log(line.join('')));
+    console.log('Answer2:', time);
+    break;
+  }
+  // Tick time and get min and max values
+  minx = Number.MAX_SAFE_INTEGER;
+  miny = Number.MAX_SAFE_INTEGER;
   maxx = 0;
   maxy = 0;
   points.forEach(point => {
@@ -45,26 +72,12 @@ while (true) {
     minx = point.x < minx ? point.x : minx;
     miny = point.y < miny ? point.y : miny;
   });
-  if (minx >= 0 && miny >= 0) {
-    reachedZero = true;
-    const canvas = [];
-    for (let i = 0; i <= maxx; i++) {
-      canvas[i] = ['.'];
-      for (let j = 0; j <= maxy; j++) {
-        canvas[i][j] = '.';
-      }
-    }
-    points.forEach(point => {
-      canvas[point.x][point.y] = '#';
-    });
-    canvas.forEach(line =>
-      fs.appendFileSync(`./day10output/${time}.txt`, line.reverse().join('') + '\n')
-    );
-  }
-  if (reachedZero && minx < 0 && miny < 0) {
+  time++;
+  if (time > 11000) {
+    // infinite loop guard
+    console.log('time overflow');
     break;
   }
-  time++;
 }
 
 const end = new Date().getTime();
@@ -72,5 +85,27 @@ const end = new Date().getTime();
 console.log(`Finished in ${end - start}ms`);
 
 /*
-Finished in 1460ms
- */
+Answer1:
+........................................................................
+........................................................................
+........................................................................
+........................................................................
+........................................................................
+......######..#....#..#####....####...#####...#####...#....#..#####.....
+......#.......##...#..#....#..#....#..#....#..#....#..#....#..#....#....
+......#.......##...#..#....#..#.......#....#..#....#..#....#..#....#....
+......#.......#.#..#..#....#..#.......#....#..#....#..#....#..#....#....
+......#####...#.#..#..#####...#.......#####...#####...######..#####.....
+......#.......#..#.#..#..#....#..###..#.......#....#..#....#..#..#......
+......#.......#..#.#..#...#...#....#..#.......#....#..#....#..#...#.....
+......#.......#...##..#...#...#....#..#.......#....#..#....#..#...#.....
+......#.......#...##..#....#..#...##..#.......#....#..#....#..#....#....
+......#.......#....#..#....#...###.#..#.......#####...#....#..#....#....
+........................................................................
+........................................................................
+........................................................................
+........................................................................
+........................................................................
+Answer2: 10511
+Finished in 343ms
+*/
