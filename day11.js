@@ -33,8 +33,17 @@ let answer2 = { x: 0, y: 0, size: 0, total: 0 };
 
 for (let y = 1; y <= 300; y++) {
   for (let x = 1; x <= 300; x++) {
-    for (let size = 1; size <= 301 - Math.max(y, x); size++) {
-      const total = gridPower(x, y, size);
+    let total = cellPower(x, y);
+    if (total > answer2.total) {
+      answer2 = { x, y, size: 1, total };
+    }
+    for (let size = 2; size <= 301 - Math.max(y, x); size++) {
+      for (let i = x; i < x + size; i++) {
+        total += cellPower(i, y + size - 1);
+      }
+      for (let i = y; i < y + size - 1; i++) {
+        total += cellPower(x + size - 1, i);
+      }
       if (total > answer2.total) {
         answer2 = { x, y, size, total };
       }
@@ -53,7 +62,7 @@ console.log(`Second part in ${end - int}ms`);
 /*
 Answer1: { x: 21, y: 13, total: 28 }
 Answer2: { x: 235, y: 268, size: 13, total: 80 }
-Finished in 510204ms
-First part in 19ms
-Second part in 510185ms
- */
+Finished in 8458ms
+First part in 18ms
+Second part in 8440ms
+*/
