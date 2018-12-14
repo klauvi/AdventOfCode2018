@@ -1,7 +1,6 @@
 const start = new Date().getTime();
 
-// const input = 513401;
-const input = 2018;
+let input = 513401;
 
 const Circle = function(value, prev = null, next = null) {
   this.value = value;
@@ -45,54 +44,47 @@ let tail = new Circle(7, root, root);
 
 let elves = [root, tail];
 let found = false;
-let check = [0, 0, 0, 3, 7];
+let check = '000037';
 let answer2 = 0;
+let checkInput = input.toString();
 
-let checkInput = 59414;
+// input = 2018;
+// checkInput = '59414';
 
 while (tail.index <= input + 10 || !found) {
   let sum = elves[0].value + elves[1].value;
   if (sum > 9) {
     tail = new Circle(1, tail, root);
-    check.shift();
-    check.push(1);
+    check = check.slice(1, check.length) + '1';
     sum = sum % 10;
+    if (!found) {
+      if (check === checkInput) {
+        answer2 = tail.index - checkInput.length;
+        found = true;
+      }
+    }
   }
-  check.shift();
-  check.push(sum);
+  check = check.slice(1, check.length) + sum.toString();
   tail = new Circle(sum, tail, root);
   if (!found) {
-    if (tail.index > 2018) {
-      console.log(parseInt(check.join('')), tail.index);
-    }
-    if (parseInt(check.join('')) === checkInput) {
-      answer2 = tail.index - checkInput.toString().length;
+    if (check === checkInput) {
+      answer2 = tail.index - checkInput.length;
       found = true;
     }
   }
   elves[0] = move(elves[0]);
   elves[1] = move(elves[1]);
-  if (tail.index > 2030) {
-    console.log('out of bounds');
-    break;
-  }
 }
 
-let current = tail;
-
 console.log('Answer1:', getAnswer1(input));
-
-const int = new Date().getTime();
-
-// insert part2 here, remember to refactor part1 to help with part2 solution 😊
-
 console.log('Answer2:', answer2);
 
 const end = new Date().getTime();
 
 console.log(`Finished in ${end - start}ms`);
-console.log(`First part in ${int - start}ms`);
-console.log(`Second part in ${end - int}ms`);
 
 /*
+Answer1: 5371393113
+Answer2: 20286858
+Finished in 5007ms
  */
