@@ -2,33 +2,39 @@ const fs = require('fs');
 
 const start = new Date().getTime();
 
-const getData = () => {
-  const input = fs.readFileSync('./day15.txt');
-  return input.toString().split('\n');
+let maxY;
+let maxX;
+
+const init = () => {
+  const getData = () => {
+    const input = fs.readFileSync('./day15.txt');
+    return input.toString().split('\n');
+  };
+
+  const input = getData();
+
+  const regExp = new RegExp(/[GE]/g);
+  const map = [];
+  const elves = [];
+  const goblins = [];
+  maxY = input.length;
+  maxX = input[0].length;
+  console.log(maxY);
+
+  for (let y = 0; y < maxY; y++) {
+    map[y] = input[y].split('');
+    const hp = 200;
+    let match;
+    while ((match = regExp.exec(input[y])) !== null) {
+      const x = match.index;
+      const object = { x, y, hp };
+      match[0] === 'G' ? goblins.push(object) : elves.push(object);
+    }
+  }
+  return [map, elves, goblins];
 };
 
-const input = getData();
-
-const regExp = new RegExp(/[GE]/g);
-const map = [];
-const elves = [];
-const goblins = [];
-const maxY = input.length;
-const maxX = input[0].length;
-console.log(maxY);
-
-for (let y = 0; y < maxY; y++) {
-  map[y] = input[y].split('');
-  const hp = 200;
-  let match;
-  while ((match = regExp.exec(input[y])) !== null) {
-    const x = match.index;
-    const object = { x, y, hp };
-    match[0] === 'G' ? goblins.push(object) : elves.push(object);
-  }
-}
-
-const inRange = target => {
+const inRange = (map, target, point) => {
   const points = [];
   for (let y = 0; y < maxY; y++) {
     for (let x = 0; x < maxX; x++) {
@@ -51,13 +57,20 @@ const inRange = target => {
   return points;
 };
 
-console.log('Answer1:');
+const part1 = () => {
+  console.log('Answer1:');
+};
 
+part1();
 const int = new Date().getTime();
 
-// insert part2 here, remember to refactor part1 to help with part2 solution 😊
+const part2 = () => {
+  // insert part2 here, remember to refactor part1 to help with part2 solution 😊
 
-console.log('Answer2:');
+  console.log('Answer2:');
+};
+
+part2();
 
 const end = new Date().getTime();
 

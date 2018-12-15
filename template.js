@@ -2,23 +2,31 @@ const fs = require('fs');
 
 const start = new Date().getTime();
 
-const getData = () => {
-  const input = fs.readFileSync('./changeme.txt');
-  return input.toString().split('\n');
+const init = () => {
+  const getData = () => {
+    const input = fs.readFileSync('./changeme.txt');
+    return input.toString().split('\n');
+  };
+
+  const input = getData();
+  return [input];
 };
 
-const input = getData();
+const part1 = () => {
+  // insert part1 here, remember to change input filename
+  console.log('Answer1:');
+};
 
-// insert part1 here, remember to change input filename
-
-console.log('Answer1:');
-
+part1();
 const int = new Date().getTime();
 
-// insert part2 here, remember to refactor part1 to help with part2 solution 😊
+const part2 = () => {
+  // insert part2 here, remember to refactor part1 to help with part2 solution 😊
 
-console.log('Answer2:');
+  console.log('Answer2:');
+};
 
+part2();
 const end = new Date().getTime();
 
 console.log(`Finished in ${end - start}ms`);
