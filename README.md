@@ -67,5 +67,5 @@ Node 10 plain JS
   - Second part in 24ms
 - Day 13
   - Finished in 77ms
-- Day 13
+- Day 14
   - Finished in 5007ms
