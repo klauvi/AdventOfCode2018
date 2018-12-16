@@ -5,6 +5,7 @@ const start = new Date().getTime();
 const init = () => {
   const getData = () => {
     const input = fs.readFileSync('./day16.txt');
+    // const input = fs.readFileSync('./test.txt');
     return input.toString().split('\n');
   };
 
@@ -80,8 +81,29 @@ const ops = {
 };
 
 const part1 = () => {
-  // insert part1 here, remember to change input filename
-  console.log('Answer1:');
+  const [input] = init();
+  const answer1 = [];
+  for (let i = 0; i < input.length; i++) {
+    if (input[i].indexOf('Before') === 0) {
+      const before = input[i++].match(/\d/g).map(Number);
+      const op = input[i++].split(' ').map(Number);
+      const after = input[i++]
+        .match(/\d/g)
+        .map(Number)
+        .join('');
+      let matches = Object.keys(ops).reduce((acc, key) => {
+        const result = ops[key]([...before], op);
+        acc += result.join('') === after ? 1 : 0;
+        return acc;
+      }, 0);
+      if (matches >= 3) {
+        answer1.push(matches);
+      }
+    } else {
+      break;
+    }
+  }
+  console.log('Answer1:', answer1.length);
 };
 
 part1();
