@@ -33,89 +33,132 @@ const init = () => {
 };
 
 const ops = {
-  addr: (register, [, vA, vB, vC]) => {
-    register[vC] = register[vA] + register[vB];
-    return [...register];
+  addr: {
+    code: new Set(),
+    fn: (register, [, vA, vB, vC]) => {
+      register[vC] = register[vA] + register[vB];
+      return [...register];
+    }
   },
-  addi: (register, [, vA, vB, vC]) => {
-    register[vC] = register[vA] + vB;
-    return [...register];
+  addi: {
+    code: new Set(),
+    fn: (register, [, vA, vB, vC]) => {
+      register[vC] = register[vA] + vB;
+      return [...register];
+    }
   },
-  mulr: (register, [, vA, vB, vC]) => {
-    register[vC] = register[vA] * register[vB];
-    return [...register];
+  mulr: {
+    code: new Set(),
+    fn: (register, [, vA, vB, vC]) => {
+      register[vC] = register[vA] * register[vB];
+      return [...register];
+    }
   },
-  muli: (register, [, vA, vB, vC]) => {
-    register[vC] = register[vA] * vB;
-    return [...register];
+  muli: {
+    code: new Set(),
+    fn: (register, [, vA, vB, vC]) => {
+      register[vC] = register[vA] * vB;
+      return [...register];
+    }
   },
-  banr: (register, [, vA, vB, vC]) => {
-    register[vC] = register[vA] & register[vB];
-    return [...register];
+  banr: {
+    code: new Set(),
+    fn: (register, [, vA, vB, vC]) => {
+      register[vC] = register[vA] & register[vB];
+      return [...register];
+    }
   },
-  bani: (register, [, vA, vB, vC]) => {
-    register[vC] = register[vA] & vB;
-    return [...register];
+  bani: {
+    code: new Set(),
+    fn: (register, [, vA, vB, vC]) => {
+      register[vC] = register[vA] & vB;
+      return [...register];
+    }
   },
-  borr: (register, [, vA, vB, vC]) => {
-    register[vC] = register[vA] | register[vB];
-    return [...register];
+  borr: {
+    code: new Set(),
+    fn: (register, [, vA, vB, vC]) => {
+      register[vC] = register[vA] | register[vB];
+      return [...register];
+    }
   },
-  bori: (register, [, vA, vB, vC]) => {
-    register[vC] = register[vA] | vB;
-    return [...register];
+  bori: {
+    code: new Set(),
+    fn: (register, [, vA, vB, vC]) => {
+      register[vC] = register[vA] | vB;
+      return [...register];
+    }
   },
-  setr: (register, [, vA, vB, vC]) => {
-    register[vC] = register[vA];
-    return [...register];
+  setr: {
+    code: new Set(),
+    fn: (register, [, vA, vB, vC]) => {
+      register[vC] = register[vA];
+      return [...register];
+    }
   },
-  seti: (register, [, vA, vB, vC]) => {
-    register[vC] = vA;
-    return [...register];
+  seti: {
+    code: new Set(),
+    fn: (register, [, vA, vB, vC]) => {
+      register[vC] = vA;
+      return [...register];
+    }
   },
-  gtir: (register, [, vA, vB, vC]) => {
-    register[vC] = vA > register[vB] ? 1 : 0;
-    return [...register];
+  gtir: {
+    code: new Set(),
+    fn: (register, [, vA, vB, vC]) => {
+      register[vC] = vA > register[vB] ? 1 : 0;
+      return [...register];
+    }
   },
-  gtri: (register, [, vA, vB, vC]) => {
-    register[vC] = register[vA] > vB ? 1 : 0;
-    return [...register];
+  gtri: {
+    code: new Set(),
+    fn: (register, [, vA, vB, vC]) => {
+      register[vC] = register[vA] > vB ? 1 : 0;
+      return [...register];
+    }
   },
-  gtrr: (register, [, vA, vB, vC]) => {
-    register[vC] = register[vA] > register[vB] ? 1 : 0;
-    return [...register];
+  gtrr: {
+    code: new Set(),
+    fn: (register, [, vA, vB, vC]) => {
+      register[vC] = register[vA] > register[vB] ? 1 : 0;
+      return [...register];
+    }
   },
-  eqir: (register, [, vA, vB, vC]) => {
-    register[vC] = vA === register[vB] ? 1 : 0;
-    return [...register];
+  eqir: {
+    code: new Set(),
+    fn: (register, [, vA, vB, vC]) => {
+      register[vC] = vA === register[vB] ? 1 : 0;
+      return [...register];
+    }
   },
-  eqri: (register, [, vA, vB, vC]) => {
-    register[vC] = register[vA] === vB ? 1 : 0;
-    return [...register];
+  eqri: {
+    code: new Set(),
+    fn: (register, [, vA, vB, vC]) => {
+      register[vC] = register[vA] === vB ? 1 : 0;
+      return [...register];
+    }
   },
-  eqrr: (register, [, vA, vB, vC]) => {
-    register[vC] = register[vA] === register[vB] ? 1 : 0;
-    return [...register];
+  eqrr: {
+    code: new Set(),
+    fn: (register, [, vA, vB, vC]) => {
+      register[vC] = register[vA] === register[vB] ? 1 : 0;
+      return [...register];
+    }
   }
 };
-const opcodes = {};
 
-const part1 = () => {
-  const [samples, tests] = init();
+const part1 = samples => {
   const answer1 = [];
   samples.forEach(sample => {
     const { before, op, after } = sample;
     const matches = Object.keys(ops).reduce((acc, key) => {
-      const result = ops[key]([...before], op);
+      const result = ops[key].fn([...before], op);
       if (result.join('') === after) {
         acc.push(key);
+        ops[key].code.add(op[0]);
       }
       return acc;
     }, []);
-    // if (matches.length === 2) {
-    //   console.log(matches, before, op, after);
-    //   opcodes[op[0]] = matches[0];
-    // }
     if (matches.length >= 3) {
       answer1.push(matches.length);
     }
@@ -123,10 +166,12 @@ const part1 = () => {
   console.log('Answer1:', answer1.length);
 };
 
-part1();
+const [samples, tests] = init();
+
+part1(samples);
 const int = new Date().getTime();
 
-console.log(opcodes);
+Object.keys(ops).forEach(key => console.log(key, ops[key].code));
 const part2 = () => {
   // insert part2 here, remember to refactor part1 to help with part2 solution 😊
 
