@@ -24,7 +24,7 @@ const init = () => {
       samples.push({ before, op, after });
     } else {
       const op = input[i].split(' ').map(Number);
-      if (op.length > 0) {
+      if (op.length > 1) {
         tests.push(op);
       }
     }
@@ -166,19 +166,37 @@ const part1 = samples => {
   console.log('Answer1:', answer1.length);
 };
 
-const [samples, tests] = init();
-
-part1(samples);
-const int = new Date().getTime();
-
-Object.keys(ops).forEach(key => console.log(key, ops[key].code));
-const part2 = () => {
-  // insert part2 here, remember to refactor part1 to help with part2 solution 😊
-
-  console.log('Answer2:');
+const part2 = tests => {
+  const indexToOp = {};
+  const working = new Set(Array.apply(null, { length: 16 }).map(Number.call, Number));
+  while (working.size > 0) {
+    Object.keys(ops).forEach(key => {
+      if (ops[key].code.size === 1) {
+        const code = ops[key].code.values().next().value;
+        if (working.has(code)) {
+          indexToOp[code] = key;
+          working.delete(code);
+          Object.keys(ops).forEach(key2 => {
+            if (key !== key2) {
+              ops[key2].code.delete(code);
+            }
+          });
+        }
+      }
+    });
+  }
+  let register = [0, 0, 0, 0];
+  tests.forEach(test => {
+    const op = indexToOp[test[0]];
+    register = ops[op].fn([...register], test);
+  });
+  console.log('Answer2:', register[0]);
 };
 
-part2();
+const [samples, tests] = init();
+part1(samples);
+const int = new Date().getTime();
+part2(tests);
 const end = new Date().getTime();
 
 console.log(`Finished in ${end - start}ms`);
@@ -186,21 +204,9 @@ console.log(`First part in ${int - start}ms`);
 console.log(`Second part in ${end - int}ms`);
 
 /*
-{ '0': 0,
-  '1': 55,
-  '2': 145,
-  '3': 50,
-  '4': 102,
-  '5': 0,
-  '6': 94,
-  '7': 96,
-  '8': 48,
-  '9': 146,
-  '10': 0,
-  '11': 0,
-  '12': 0,
-  '13': 44,
-  '14': 0,
-  '15': 0 }
-
+Answer1: 580
+Answer2: 537
+Finished in 37ms
+First part in 34ms
+Second part in 3ms
  */
