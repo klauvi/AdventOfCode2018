@@ -58,10 +58,13 @@ const inRange = (map, target, point) => {
 };
 
 const part1 = () => {
-  console.log('Answer1:');
+  const [map, elves, goblins] = init();
+  const range = inRange(map, 'G', null);
+  console.log('Answer1:', range);
 };
 
 part1();
+
 const int = new Date().getTime();
 
 const part2 = () => {
