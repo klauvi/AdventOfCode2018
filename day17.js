@@ -4,8 +4,8 @@ const start = new Date().getTime();
 
 const init = () => {
   const getData = () => {
-    const input = fs.readFileSync('./day17.txt');
-    // const input = fs.readFileSync('./test.txt');
+    // const input = fs.readFileSync('./day17.txt');
+    const input = fs.readFileSync('./test.txt');
     return input.toString().split('\n');
   };
 
@@ -60,10 +60,82 @@ const updateMinMax = (minX, maxX, minY, maxY, fromX, toX, fromY, toY) => {
   return [minX, maxX, minY, maxY];
 };
 
+const fillSide = (map, x, y, increment) => {
+  while (true) {
+    if (map[y][x] === '#') {
+      return [true, x];
+    } else if (map[y][x] === '.' && map[y + 1][x] === '.') {
+      map[y][x] = '|';
+      map[y + 1][x] = '|';
+      return [false, x];
+    } else {
+      map[y][x] = '|';
+      x += increment;
+    }
+  }
+};
+
 const part1 = () => {
   const [map] = init();
-
-  console.log('Answer1:');
+  const currentX = new Set([500]);
+  let y = 0;
+  while (currentX.size > 0) {
+    let stuck = false;
+    const x = currentX.values().next().value;
+    currentX.delete(x);
+    const next = map[y + 1][x];
+    if (next === '.') {
+      map[y + 1][x] = '|';
+      currentX.add(x);
+      if (currentX.size === 1) {
+        y++;
+        continue;
+      }
+    } else if (map[y][x] !== '~' && (next === '#' || next === '~')) {
+      const [leftwall, leftX] = fillSide(map, x - 1, y, -1);
+      const [rightwall, rightX] = fillSide(map, x + 1, y, 1);
+      if (!leftwall) {
+        currentX.add(leftX);
+      }
+      if (!rightwall) {
+        currentX.add(rightX);
+      }
+      if (leftwall && rightwall) {
+        currentX.add(x);
+        for (let fillX = leftX + 1; fillX < rightX; fillX++) {
+          if (map[y][fillX] === '|') {
+            map[y][fillX] = '~';
+          }
+        }
+      }
+    } else {
+      currentX.add(x);
+    }
+    currentX.forEach(x => {
+      if (map[y + 1][x] === '.') {
+        map[y + 1][x] = '|';
+        currentX.add(x);
+        stuck = true;
+      } else if (map[y + 1][x] !== '|') {
+        stuck = true;
+      }
+    });
+    stuck ? --y : ++y;
+    if (y > map.length - 2) {
+      break;
+    }
+  }
+  // for (let line of map) console.log(line.join(''));
+  console.log(
+    'Answer1:',
+    map.reduce((acc, line) => {
+      const water = line.join('').match(/[~|]/g);
+      if (water) {
+        acc += water.length;
+      }
+      return acc;
+    }, 0)
+  );
 };
 
 const part2 = () => {
