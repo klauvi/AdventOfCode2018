@@ -63,121 +63,116 @@ const updateMinMax = (minX, maxX, minY, maxY, fromX, toX, fromY, toY) => {
 const fillSide = (map, x, y, increment) => {
   while (true) {
     if (map[y][x] === '#') {
-      return [true, x];
+      return [true, x, 0];
     } else if (map[y][x] === '.' && map[y + 1][x] === '.') {
       map[y][x] = '|';
-      // map[y + 1][x] = '|';
-      return [false, x];
+      return [false, x, 0];
+    } else if (map[y][x] === '|' && map[y + 1][x] === '|') {
+      console.log('already a stream here', x, y);
+      return [false, x, y];
     } else {
       map[y][x] = '|';
       x += increment;
+      if (!map[y][x]) {
+        console.log('out of bounds');
+      }
+      if (x < 480 || 600 < x) {
+        console.log('i am stuck here', x, y);
+        return [undefined, 0];
+      }
     }
   }
 };
 
+const Stream = function(x, y) {
+  this.x = x;
+  this.y = y;
+};
+
 const part1 = () => {
   const [map] = init();
-  const continuecheck = {};
-  const currentX = new Set([500]);
-  let y = 0;
-  while (currentX.size > 0) {
-    const [test1, test2] = [1140, 1170];
-    let stuck = false;
-    const x = currentX.values().next().value;
-    // if (y === 1156 && x === 521) {
-    //   for (let y = test1; y < test2; y++) {
-    //     console.log(map[y].join(''), y);
-    //   }
-    //   break;
-    // }
-    currentX.delete(x);
-    const next = map[y + 1][x];
-    if (map[y][x] === '.') {
-      map[y][x] = '|';
-    }
-    if (next === '~' && map[y][x] === '~') {
-      continue;
-    }
-    if (next === '|' && map[y][x] === '|') {
-      currentX.add(x);
-      if (currentX.size === 1) {
-        y++;
+  const streams = new Set();
+  let current = new Stream(500, 0);
+  streams.add(current);
+  while (streams.size > 0) {
+    current = streams.values().next().value;
+    streams.delete(current);
+    let y = current.y;
+    let x = current.x;
+    while (true) {
+      if (y === map.length - 1) {
+        break;
+      }
+      const next = map[y + 1][x];
+      if (next === '|') {
+        break;
+      }
+      if (next === '.') {
+        map[++y][x] = '|';
         continue;
-      } else {
-        if (continuecheck[y + '' + x]) {
-          y++;
+      }
+      if (next === '#' && map[y + 1][x - 1] !== '#' && map[y + 1][x + 1] !== '#') {
+        if ('#~'.indexOf(map[y][x - 1]) === -1) {
+          map[y][x - 1] = '|';
         }
-        continuecheck[y + '' + x] = true;
-        if (y === 1155 && x === 545) console.log('check', y, x, currentX);
+        if ('#~'.indexOf(map[y][x + 1]) === -1) {
+          map[y][x + 1] = '|';
+        }
+        x = x - 1;
+        if (x === 559 && y === 1908) {
+          console.log('found a bug');
+          continue;
+        }
+        if (x === 531 && y === 1564) {
+          console.log('found a bug');
+          continue;
+        }
+        streams.add(new Stream(x + 1, y));
         continue;
       }
-    }
-    if (next === '.') {
-      map[y + 1][x] = '|';
-      currentX.add(x);
-      if (currentX.size === 1) {
-        y++;
-        continue;
-      }
-    } else if (map[y][x] !== '~' && (next === '#' || next === '~')) {
-      const [leftwall, leftX] = fillSide(map, x - 1, y, -1);
-      const [rightwall, rightX] = fillSide(map, x + 1, y, 1);
-      if (!leftwall) {
-        currentX.add(leftX);
-      }
-      if (!rightwall) {
-        currentX.add(rightX);
-      }
-      if (leftwall && rightwall) {
-        currentX.add(x);
-        for (let fillX = leftX + 1; fillX < rightX; fillX++) {
-          if (map[y][fillX] === '|') {
-            map[y][fillX] = '~';
+      if (next === '#' || next === '~') {
+        const [leftwall, leftX, debugleft] = fillSide(map, x - 1, y, -1);
+        const [rightwall, rightX, debugright] = fillSide(map, x + 1, y, 1);
+        if (!leftwall && leftX === 532 && debugleft === 1542) {
+          console.log('crap', current, streams);
+          break;
+        }
+        if (!rightwall && rightX === 532 && debugright === 1542) {
+          console.log('crap', current, streams);
+          break;
+        }
+        if (!leftwall && leftX === 551 && debugleft === 1906) {
+          console.log('crap', current);
+          break;
+        }
+        if (!rightwall && rightX === 551 && debugright === 1906) {
+          console.log('crap', current);
+          break;
+        }
+        if (leftwall === false) {
+          x = leftX;
+        }
+        if (rightwall === false && leftwall === false) {
+          streams.add(new Stream(rightX, y));
+        } else if (rightwall === false && leftwall === true) {
+          x = rightX;
+        }
+        if (rightwall === true && leftwall === true) {
+          for (let fillX = leftX + 1; fillX < rightX; fillX++) {
+            if (map[y][fillX] === '|') {
+              map[y][fillX] = '~';
+            }
           }
-        }
-        if (y === 1156) {
-          console.log(y, x, currentX);
-          console.log(map[y - 1].join(''));
-          console.log(map[y].join(''));
-          console.log(map[y + 1].join(''));
-        }
-        --y;
-        continue;
-      } else {
-        y++;
-        continue;
-      }
-    } else {
-      currentX.add(x);
-    }
-    let foundBottom = false;
-    currentX.forEach(x => {
-      if (map[y + 1][x] === '.' && map[y][x] === '|') {
-        map[y + 1][x] = '|';
-        currentX.add(x);
-        // stuck = true;
-      } else if (map[y + 1][x] === '~') {
-        stuck = true;
-      } else if (map[y + 1][x] === '#') {
-        foundBottom = true;
-      }
-    });
-    if (y === 1155 && x === 545) console.log('check', y, x, currentX, stuck);
-    if (foundBottom) {
-      console.log('bottom', y, x, currentX);
-      if (y === 11560) {
-        for (let line of map) {
-          fs.appendFileSync('./day17.final.txt', line.join('') + '\n');
+          --y;
+          continue;
+        } else {
+          continue;
         }
       }
-      continue;
-    }
-    stuck ? --y : ++y;
-    if (y > map.length - 2) {
-      break;
     }
   }
-  // for (let line of map) console.log(line.join(''));
+  for (let line of map)
+    fs.appendFileSync('./day17.final.txt', line.join('').replace('.', ' ') + '\n');
   console.log(
     'Answer1:',
     map.reduce((acc, line) => {
