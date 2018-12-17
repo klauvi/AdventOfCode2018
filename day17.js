@@ -4,8 +4,8 @@ const start = new Date().getTime();
 
 const init = () => {
   const getData = () => {
-    // const input = fs.readFileSync('./day17.txt');
-    const input = fs.readFileSync('./test.txt');
+    const input = fs.readFileSync('./day17.txt');
+    // const input = fs.readFileSync('./test.txt');
     return input.toString().split('\n');
   };
 
@@ -66,7 +66,7 @@ const fillSide = (map, x, y, increment) => {
       return [true, x];
     } else if (map[y][x] === '.' && map[y + 1][x] === '.') {
       map[y][x] = '|';
-      map[y + 1][x] = '|';
+      // map[y + 1][x] = '|';
       return [false, x];
     } else {
       map[y][x] = '|';
@@ -77,13 +77,41 @@ const fillSide = (map, x, y, increment) => {
 
 const part1 = () => {
   const [map] = init();
+  const continuecheck = {};
   const currentX = new Set([500]);
   let y = 0;
   while (currentX.size > 0) {
+    const [test1, test2] = [1140, 1170];
     let stuck = false;
     const x = currentX.values().next().value;
+    // if (y === 1156 && x === 521) {
+    //   for (let y = test1; y < test2; y++) {
+    //     console.log(map[y].join(''), y);
+    //   }
+    //   break;
+    // }
     currentX.delete(x);
     const next = map[y + 1][x];
+    if (map[y][x] === '.') {
+      map[y][x] = '|';
+    }
+    if (next === '~' && map[y][x] === '~') {
+      continue;
+    }
+    if (next === '|' && map[y][x] === '|') {
+      currentX.add(x);
+      if (currentX.size === 1) {
+        y++;
+        continue;
+      } else {
+        if (continuecheck[y + '' + x]) {
+          y++;
+        }
+        continuecheck[y + '' + x] = true;
+        if (y === 1155 && x === 545) console.log('check', y, x, currentX);
+        continue;
+      }
+    }
     if (next === '.') {
       map[y + 1][x] = '|';
       currentX.add(x);
@@ -107,19 +135,43 @@ const part1 = () => {
             map[y][fillX] = '~';
           }
         }
+        if (y === 1156) {
+          console.log(y, x, currentX);
+          console.log(map[y - 1].join(''));
+          console.log(map[y].join(''));
+          console.log(map[y + 1].join(''));
+        }
+        --y;
+        continue;
+      } else {
+        y++;
+        continue;
       }
     } else {
       currentX.add(x);
     }
+    let foundBottom = false;
     currentX.forEach(x => {
-      if (map[y + 1][x] === '.') {
+      if (map[y + 1][x] === '.' && map[y][x] === '|') {
         map[y + 1][x] = '|';
         currentX.add(x);
+        // stuck = true;
+      } else if (map[y + 1][x] === '~') {
         stuck = true;
-      } else if (map[y + 1][x] !== '|') {
-        stuck = true;
+      } else if (map[y + 1][x] === '#') {
+        foundBottom = true;
       }
     });
+    if (y === 1155 && x === 545) console.log('check', y, x, currentX, stuck);
+    if (foundBottom) {
+      console.log('bottom', y, x, currentX);
+      if (y === 11560) {
+        for (let line of map) {
+          fs.appendFileSync('./day17.final.txt', line.join('') + '\n');
+        }
+      }
+      continue;
+    }
     stuck ? --y : ++y;
     if (y > map.length - 2) {
       break;
