@@ -5,6 +5,7 @@ const start = new Date().getTime();
 const init = () => {
   const getData = () => {
     const input = fs.readFileSync('./changeme.txt');
+    // const input = fs.readFileSync('./test.txt');
     return input.toString().split('\n');
   };
 
