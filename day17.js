@@ -68,14 +68,10 @@ const fillSide = (map, x, y, increment) => {
       map[y][x] = '|';
       return [false, x, 0];
     } else if (map[y][x] === '|' && map[y + 1][x] === '|') {
-      console.log('already a stream here', x, y);
       return [false, x, y];
     } else {
       map[y][x] = '|';
       x += increment;
-      if (!map[y][x]) {
-        console.log('out of bounds');
-      }
       if (x < 480 || 600 < x) {
         console.log('i am stuck here', x, y);
         return [undefined, 0];
@@ -99,6 +95,9 @@ const part1 = () => {
     streams.delete(current);
     let y = current.y;
     let x = current.x;
+    if (current.x === 483 && current.y === 1278) {
+      break;
+    }
     while (true) {
       if (y === map.length - 1) {
         break;
@@ -133,22 +132,6 @@ const part1 = () => {
       if (next === '#' || next === '~') {
         const [leftwall, leftX, debugleft] = fillSide(map, x - 1, y, -1);
         const [rightwall, rightX, debugright] = fillSide(map, x + 1, y, 1);
-        if (!leftwall && leftX === 532 && debugleft === 1542) {
-          console.log('crap', current, streams);
-          break;
-        }
-        if (!rightwall && rightX === 532 && debugright === 1542) {
-          console.log('crap', current, streams);
-          break;
-        }
-        if (!leftwall && leftX === 551 && debugleft === 1906) {
-          console.log('crap', current);
-          break;
-        }
-        if (!rightwall && rightX === 551 && debugright === 1906) {
-          console.log('crap', current);
-          break;
-        }
         if (leftwall === false) {
           x = leftX;
         }
@@ -171,8 +154,8 @@ const part1 = () => {
       }
     }
   }
-  for (let line of map)
-    fs.appendFileSync('./day17.final.txt', line.join('').replace('.', ' ') + '\n');
+  // for (let line of map)
+  //   fs.appendFileSync('./day17.final.txt', line.join('').replace('.', ' ') + '\n');
   console.log(
     'Answer1:',
     map.reduce((acc, line) => {
