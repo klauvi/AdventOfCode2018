@@ -186,4 +186,7 @@ const end = new Date().getTime();
 console.log(`Finished in ${end - start}ms`);
 
 /*
+Answer1: 33008  // should be 33004 because top 4 are above first clay line
+Answer2: 23294
+Finished in 1744ms
  */
