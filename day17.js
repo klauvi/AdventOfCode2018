@@ -1,3 +1,4 @@
+// @ts-nocheck
 const fs = require('fs');
 
 const start = new Date().getTime();
@@ -29,7 +30,7 @@ const init = () => {
         }
       }
     } else if (line[0] === 'y') {
-      const [y, fromX, toX] = line.match(/\d+/g);
+      const [y, fromX, toX] = line.match(/\d+/g).map(Number);
       [minX, maxX, minY, maxY] = updateMinMax(minX, maxX, minY, maxY, fromX, toX, y, y);
       if (!map[y]) {
         map[y] = [];
@@ -49,7 +50,7 @@ const init = () => {
       }
     }
   }
-  return [map];
+  return [map, minX, maxX];
 };
 
 const updateMinMax = (minX, maxX, minY, maxY, fromX, toX, fromY, toY) => {
@@ -63,19 +64,13 @@ const updateMinMax = (minX, maxX, minY, maxY, fromX, toX, fromY, toY) => {
 const fillSide = (map, x, y, increment) => {
   while (true) {
     if (map[y][x] === '#') {
-      return [true, x, 0];
-    } else if (map[y][x] === '.' && map[y + 1][x] === '.') {
+      return [true, x];
+    } else if ((map[y][x] === '.' || map[y][x] === '|') && map[y + 1][x] === '.') {
       map[y][x] = '|';
-      return [false, x, 0];
-    } else if (map[y][x] === '|' && map[y + 1][x] === '|') {
-      return [false, x, y];
+      return [false, x];
     } else {
       map[y][x] = '|';
       x += increment;
-      if (x < 480 || 600 < x) {
-        console.log('i am stuck here', x, y);
-        return [undefined, 0];
-      }
     }
   }
 };
@@ -87,63 +82,77 @@ const Stream = function(x, y) {
 
 const part1 = () => {
   const [map] = init();
+  const returnMap = [];
+  const finished = {};
+  for (let y = 0; y < map.length; y++) {
+    returnMap[y] = map[y].slice();
+  }
   const streams = new Set();
   let current = new Stream(500, 0);
   streams.add(current);
   while (streams.size > 0) {
+    const currentMap = [];
+    for (let y = 0; y < map.length; y++) {
+      currentMap[y] = map[y].slice();
+    }
     current = streams.values().next().value;
     streams.delete(current);
     let y = current.y;
     let x = current.x;
-    if (current.x === 483 && current.y === 1278) {
-      break;
+    if (finished[`${x},${y}`]) {
+      continue;
     }
     while (true) {
-      if (y === map.length - 1) {
+      if (y >= map.length - 1) {
+        finished[`${current.x},${current.y}`] = true;
         break;
       }
-      const next = map[y + 1][x];
-      if (next === '|') {
-        break;
-      }
+      const next = currentMap[y + 1][x];
       if (next === '.') {
-        map[++y][x] = '|';
+        currentMap[++y][x] = '|';
+        returnMap[y][x] = '|';
         continue;
       }
-      if (next === '#' && map[y + 1][x - 1] !== '#' && map[y + 1][x + 1] !== '#') {
-        if ('#~'.indexOf(map[y][x - 1]) === -1) {
-          map[y][x - 1] = '|';
+      if (next === '#' && currentMap[y + 1][x - 1] !== '#' && currentMap[y + 1][x + 1] !== '#') {
+        // hit the edge of a pool, need to spread both ways
+        if ('#~'.indexOf(currentMap[y][x + 1]) === -1) {
+          currentMap[y][x + 1] = '|';
+          returnMap[y][x + 1] = '|';
+          streams.add(new Stream(x + 1, y));
         }
-        if ('#~'.indexOf(map[y][x + 1]) === -1) {
-          map[y][x + 1] = '|';
-        }
-        x = x - 1;
-        if (x === 559 && y === 1908) {
-          console.log('found a bug');
+        if ('#~'.indexOf(currentMap[y][x - 1]) === -1) {
+          currentMap[y][--x] = '|';
+          returnMap[y][x] = '|';
           continue;
+        } else {
+          console.log('something weird happended while spreading at', x, y, current);
+          break;
         }
-        if (x === 531 && y === 1564) {
-          console.log('found a bug');
-          continue;
-        }
-        streams.add(new Stream(x + 1, y));
-        continue;
       }
       if (next === '#' || next === '~') {
-        const [leftwall, leftX, debugleft] = fillSide(map, x - 1, y, -1);
-        const [rightwall, rightX, debugright] = fillSide(map, x + 1, y, 1);
-        if (leftwall === false) {
+        const [leftwall, leftX] = fillSide(currentMap, x - 1, y, -1);
+        const [rightwall, rightX] = fillSide(currentMap, x + 1, y, 1);
+        for (let fillX = leftX + 1; fillX < rightX; fillX++) {
+          returnMap[y][fillX] = '|';
+        }
+        if (!leftwall) {
           x = leftX;
+          currentMap[y][x] = '|';
+          returnMap[y][x] = '|';
         }
-        if (rightwall === false && leftwall === false) {
+        if (!rightwall && !leftwall) {
           streams.add(new Stream(rightX, y));
-        } else if (rightwall === false && leftwall === true) {
+          returnMap[y][rightX] = '|';
+        } else if (!rightwall && leftwall) {
           x = rightX;
+          currentMap[y][x] = '|';
+          returnMap[y][x] = '|';
         }
-        if (rightwall === true && leftwall === true) {
+        if (rightwall && leftwall) {
           for (let fillX = leftX + 1; fillX < rightX; fillX++) {
-            if (map[y][fillX] === '|') {
-              map[y][fillX] = '~';
+            if (currentMap[y][fillX] === '|') {
+              currentMap[y][fillX] = '~';
+              returnMap[y][fillX] = '~';
             }
           }
           --y;
@@ -154,33 +163,27 @@ const part1 = () => {
       }
     }
   }
-  // for (let line of map)
-  //   fs.appendFileSync('./day17.final.txt', line.join('').replace('.', ' ') + '\n');
-  console.log(
-    'Answer1:',
-    map.reduce((acc, line) => {
+  for (let line of returnMap)
+    fs.appendFileSync('./day17.final.txt', line.join('').replace('.', ' ') + '\n');
+  const [answer1, answer2] = returnMap.reduce(
+    ([a1, a2], line) => {
       const water = line.join('').match(/[~|]/g);
-      if (water) {
-        acc += water.length;
-      }
-      return acc;
-    }, 0)
+      const still = line.join('').match(/[~]/g);
+      a1 += water ? water.length : 0;
+      a2 += still ? still.length : 0;
+      return [a1, a2];
+    },
+    [0, 0]
   );
-};
-
-const part2 = () => {
-  // insert part2 here, remember to refactor part1 to help with part2 solution 😊
-  console.log('Answer2:');
+  console.log('Answer1:', answer1);
+  console.log('Answer2:', answer2);
 };
 
 part1();
-const int = new Date().getTime();
-part2();
+
 const end = new Date().getTime();
 
 console.log(`Finished in ${end - start}ms`);
-console.log(`First part in ${int - start}ms`);
-console.log(`Second part in ${end - int}ms`);
 
 /*
  */

@@ -1,3 +1,6 @@
+/*
+A* shortest path function -> https://en.wikipedia.org/wiki/A*_search_algorithm
+*/
 const fs = require('fs');
 
 const start = new Date().getTime();
