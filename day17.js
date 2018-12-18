@@ -163,8 +163,8 @@ const part1 = () => {
       }
     }
   }
-  for (let line of returnMap)
-    fs.appendFileSync('./day17.final.txt', line.join('').replace('.', ' ') + '\n');
+  // for (let line of returnMap)
+  //   fs.appendFileSync('./day17.final.txt', line.join('').replace('.', ' ') + '\n');
   const [answer1, answer2] = returnMap.reduce(
     ([a1, a2], line) => {
       const water = line.join('').match(/[~|]/g);
