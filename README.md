@@ -70,6 +70,8 @@ Node 10 plain JS
 - Day 14
   - Finished in 5007ms
 - Day 15
+  - First part in 7827ms
+  - Second part in 6153ms
 - Day 16
   - Finished in 37ms
   - First part in 34ms

@@ -41,6 +41,7 @@ const init = () => {
 const Entity = function(type, x, y) {
   this.type = type;
   this.enemy = type === 'G' ? 'E' : 'G';
+  this.ap = type === 'G' ? 3 : parseInt(process.argv[2]) || 3;
   this.x = x;
   this.y = y;
   this.hp = 200;
@@ -55,7 +56,7 @@ Entity.prototype.turn = function(map) {
   );
   if (enemies.length > 0) {
     const enemy = enemies.reduce((acc, val) => (val.hp < acc.hp ? val : acc), enemies[0]);
-    enemy.hp -= 3;
+    enemy.hp -= this.ap;
     return enemy;
   } else {
     // No enemy, check if we can move
@@ -81,7 +82,7 @@ Entity.prototype.turn = function(map) {
         );
         if (enemies.length > 0) {
           const enemy = enemies.reduce((acc, val) => (val.hp < acc.hp ? val : acc), enemies[0]);
-          enemy.hp -= 3;
+          enemy.hp -= this.ap;
           return enemy;
         } else {
           console.log('Someone is lying', this);
@@ -93,7 +94,7 @@ Entity.prototype.turn = function(map) {
         );
         if (enemies.length > 0) {
           const enemy = enemies.reduce((acc, val) => (val.hp < acc.hp ? val : acc), enemies[0]);
-          enemy.hp -= 3;
+          enemy.hp -= this.ap;
           return enemy;
         }
         return false;
@@ -229,7 +230,7 @@ const reachable = (map, start, goal) => {
   return false;
 };
 
-const part1 = () => {
+const part2 = () => {
   const [map, elves, goblins] = init();
   const regExp = new RegExp(/[GE]/, 'g');
   let round = 0;
@@ -253,25 +254,20 @@ const part1 = () => {
       ++round;
     }
   }
-  let answer1 = 0;
-  goblins.forEach(goblin => (answer1 += goblin.hp));
-  elves.forEach(elf => (answer1 += elf.hp));
-  console.log('Answer1:', answer1 * round);
-};
-const part2 = () => {
-  // insert part2 here, remember to refactor part1 to help with part2 solution 😊
-
-  console.log('Answer2:');
+  let answer = 0;
+  goblins.forEach(goblin => (answer += goblin.hp));
+  elves.forEach(elf => (answer += elf.hp));
+  console.log('Answer:', answer * round);
 };
 
-part1();
-const int = new Date().getTime();
 part2();
 const end = new Date().getTime();
 
 console.log(`Finished in ${end - start}ms`);
-console.log(`First part in ${int - start}ms`);
-console.log(`Second part in ${end - int}ms`);
 
 /*
+Answer1: 179968
+First part in 7827ms
+Answer2: 42656 -- this is wrong, don't know why
+Second part in 6153ms
  */
