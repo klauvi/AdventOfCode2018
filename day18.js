@@ -91,7 +91,7 @@ const part2 = () => {
   let patternFound = false;
   let oldTotal = getTotal(map);
   let oldTime = 0;
-  for (let time = 0; time < 600; time++) {
+  for (let time = 0; time < TARGET; time++) {
     const newMap = change(map);
     const newTotal = getTotal(newMap);
     if (patternFound && newTotal === stopper) {
