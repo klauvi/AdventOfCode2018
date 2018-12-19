@@ -11,8 +11,8 @@ let maxX;
 
 const init = () => {
   const getData = () => {
-    const input = fs.readFileSync('./test.txt');
-    // const input = fs.readFileSync('./day15.txt');
+    // const input = fs.readFileSync('./test.txt');
+    const input = fs.readFileSync('./day15.txt');
     return input.toString().split('\n');
   };
 
@@ -20,8 +20,8 @@ const init = () => {
 
   const regExp = new RegExp(/[GE]/g);
   const map = [];
-  const elves = [];
-  const goblins = [];
+  const elves = new Set();
+  const goblins = new Set();
   maxY = input.length;
   maxX = input[0].length;
 
@@ -31,7 +31,7 @@ const init = () => {
     while ((match = regExp.exec(input[y])) !== null) {
       const x = match.index;
       const object = new Entity(match[0], x, y);
-      match[0] === 'G' ? goblins.push(object) : elves.push(object);
+      match[0] === 'G' ? goblins.add(object) : elves.add(object);
       map[y][x] = object;
     }
   }
@@ -50,12 +50,13 @@ Entity.prototype.toString = function() {
 };
 Entity.prototype.turn = function(map) {
   // check if enemy is in next hop and attack if there is
-  const enemy = getNextHop(map, this.x, this.y).find(
+  const enemies = getNextHop(map, this.x, this.y).filter(
     value => value && value.toString() === this.enemy
   );
-  if (enemy) {
+  if (enemies.length > 0) {
+    const enemy = enemies.reduce((acc, val) => (val.hp < acc.hp ? val : acc), enemies[0]);
     enemy.hp -= 3;
-    return true;
+    return enemy;
   } else {
     // No enemy, check if we can move
     let going = [0, 0];
@@ -75,25 +76,27 @@ Entity.prototype.turn = function(map) {
       // now we need to check again if there is enemy close and attack if there is
       if (shortest === 1) {
         // There should be enemy next
-        const enemy = getNextHop(map, this.x, this.y).find(
+        const enemies = getNextHop(map, this.x, this.y).filter(
           value => value && value.toString() === this.enemy
         );
-        if (enemy) {
+        if (enemies.length > 0) {
+          const enemy = enemies.reduce((acc, val) => (val.hp < acc.hp ? val : acc), enemies[0]);
           enemy.hp -= 3;
-          return true;
+          return enemy;
         } else {
           console.log('Someone is lying', this);
         }
       } else {
         // there shouldnt be enemy close enough, but still check
-        const enemy = getNextHop(map, this.x, this.y).find(
+        const enemies = getNextHop(map, this.x, this.y).filter(
           value => value && value.toString() === this.enemy
         );
-        if (enemy) {
+        if (enemies.length > 0) {
+          const enemy = enemies.reduce((acc, val) => (val.hp < acc.hp ? val : acc), enemies[0]);
           enemy.hp -= 3;
-          console.log('Someone is lying again', this);
+          return enemy;
         }
-        return true;
+        return false;
       }
     } else {
       // nowhere to go, do nothing
@@ -228,15 +231,32 @@ const reachable = (map, start, goal) => {
 
 const part1 = () => {
   const [map, elves, goblins] = init();
-  // const path = reachable(map, [8, 16], [23, 13]);
-  const elf = map[2][4];
-  const goblin = map[1][3];
-  console.log(goblin.turn(map));
-  console.log(goblin);
-  // for (let line of map) {
-  //   console.log(line.join(''));
-  // }
-  console.log('Answer1:', elf);
+  const regExp = new RegExp(/[GE]/, 'g');
+  let round = 0;
+  while (elves.size > 0 && goblins.size > 0) {
+    const working = [];
+    for (let line of map) {
+      while ((match = regExp.exec(line.join('')))) {
+        working.push(line[match.index]);
+      }
+    }
+    working.forEach(entity => {
+      if (entity.hp > 0) {
+        const attacked = entity.turn(map);
+        if (attacked && attacked.hp <= 0) {
+          attacked.type === 'G' ? goblins.delete(attacked) : elves.delete(attacked);
+          map[attacked.y][attacked.x] = '.';
+        }
+      }
+    });
+    if (elves.size > 0 && goblins.size > 0) {
+      ++round;
+    }
+  }
+  let answer1 = 0;
+  goblins.forEach(goblin => (answer1 += goblin.hp));
+  elves.forEach(elf => (answer1 += elf.hp));
+  console.log('Answer1:', answer1 * round);
 };
 const part2 = () => {
   // insert part2 here, remember to refactor part1 to help with part2 solution 😊
