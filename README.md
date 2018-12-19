@@ -80,3 +80,7 @@ Node 10 plain JS
   - Finished in 1193ms
   - First part in 39ms
   - Second part in 1154ms
+- Day 19
+  - Finished in 6316ms
+  - First part in 6252ms
+  - Second part in 64ms

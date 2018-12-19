@@ -131,7 +131,7 @@ const ops = {
 const part1 = () => {
   const [input] = init();
   const ip = input[0].match(/\d+/g).map(Number)[0];
-  let ipValue = ip;
+  let ipValue = 0;
   const instructions = input.slice(1);
   let register = [0, 0, 0, 0, 0, 0];
   while (ipValue < instructions.length) {
@@ -140,14 +140,41 @@ const part1 = () => {
     register[ip] = ipValue;
     register = ops[command].fn([...register], [ip, a, b, c]);
     ipValue = register[ip] + 1;
-    console.log(ipValue - 1, command, a, b, c, register, ipValue);
   }
   console.log('Answer1:', register[0]);
 };
 
 const part2 = () => {
-  // insert part2 here, remember to refactor part1 to help with part2 solution 😊
-  console.log('Answer2:');
+  const [input] = init();
+  const ip = input[0].match(/\d+/g).map(Number)[0];
+  let ipValue = 0;
+  const instructions = input.slice(1);
+  let register = [1, 0, 0, 0, 0, 0];
+  let pattern = {};
+  while (ipValue < instructions.length) {
+    const command = instructions[ipValue].split(' ')[0];
+    const [a, b, c] = instructions[ipValue].match(/\d+/g).map(Number);
+    register[ip] = ipValue;
+    register = ops[command].fn([...register], [ip, a, b, c]);
+    ipValue = register[ip] + 1;
+    if (pattern[register[5] * ipValue] === register[2] && ipValue === 3) {
+      while (register[2] <= register[5]) {
+        if (register[5] % register[2] === 0) {
+          register[0] += register[2];
+        }
+        if (register[5] / 2 < register[2]) {
+          register[0] += register[5];
+          break;
+        }
+        ++register[2];
+        ipValue++;
+      }
+      break;
+    } else {
+      pattern[register[5] * ipValue] = register[2];
+    }
+  }
+  console.log('Answer2:', register[0]);
 };
 
 part1();
@@ -160,4 +187,9 @@ console.log(`First part in ${int - start}ms`);
 console.log(`Second part in ${end - int}ms`);
 
 /*
+Answer1: 1374
+Answer2: 15826974
+Finished in 6316ms
+First part in 6252ms
+Second part in 64ms
  */
