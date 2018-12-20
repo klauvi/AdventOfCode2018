@@ -4,8 +4,8 @@ const start = new Date().getTime();
 
 const init = () => {
   const getData = () => {
-    // const input = fs.readFileSync('./day20.txt');
-    const input = fs.readFileSync('./test.txt');
+    const input = fs.readFileSync('./day20.txt');
+    // const input = fs.readFileSync('./test.txt');
     return input.toString().split('\n');
   };
 
@@ -83,7 +83,7 @@ const nextOperatorIndex = (string, i) => {
   const nextOr = [string.indexOf('|', i)].map(v => (v === -1 ? Infinity : v))[0];
   return Math.min(nextStart, nextEnd, nextOr);
 };
-const printMap = map => {
+const printMap = (map, file = false) => {
   const minY = Math.min.apply(Math, Object.keys(map));
   const maxY = Math.max.apply(Math, Object.keys(map));
   let minX = Infinity;
@@ -103,7 +103,11 @@ const printMap = map => {
     for (let x = minX; x <= maxX; x++) {
       line += map[y][x] || '%';
     }
-    console.log(line.replace(/\?/g, '#'));
+    if (file) {
+      fs.appendFileSync('./day20.debug.log', line.replace(/\?/g, '#') + '\n');
+    } else {
+      console.log(line.replace(/\?/g, '#'));
+    }
   }
 };
 
@@ -114,7 +118,6 @@ const part1 = () => {
   let x = 0;
   let i = 1;
   const tracker = [];
-  let deadEnd = false;
   addRoom(map, [y, x]);
   map[y][x] = 'X';
   while (true) {
@@ -127,38 +130,34 @@ const part1 = () => {
     if (string.length > 0) {
       if (nextOp === '|') {
         walk(string, map, [y, x]);
-        if (input[next + 1] === ')') {
-          deadEnd = true;
-        } else if (deadEnd) {
-          deadEnd = false;
-          [y, x] = tracker.pop();
-        }
+        input[i - 1] === ')' ? ([y, x] = tracker.pop()) : tracker.pop();
       } else if (nextOp === '(') {
         [y, x] = walk(string, map, [y, x]);
         tracker.push([y, x]);
       } else if (nextOp === ')') {
-        walk(string, map, [y, x]);
-        [y, x] = tracker.pop();
+        [y, x] = walk(string, map, [y, x]);
       } else {
         console.log('I forgot something', string, nextOp);
       }
     } else {
-      if ('|)'.indexOf(nextOp) !== -1 && tracker.length > 0) {
+      if (nextOp === '|' && tracker.length > 0) {
         [y, x] = tracker.pop();
       } else if (nextOp === '(') {
         tracker.push([y, x]);
+      } else if (nextOp === '|' && tracker.length === 0) {
+        console.log('FAIL', i);
       }
     }
-    // fs.appendFileSync(
-    //   './day20.debug.log',
-    //   `${i}${i < 10 ? ' ' : ''}${i < 100 ? ' ' : ''}${
-    //     i < 1000 ? ' ' : ''
-    //   }  ${string} ${nextOp} y:${y} x:${x} - ${tracker.join(' ; ')}\n`
-    // );
-    console.log(string, nextOp, y, x, i, tracker);
+    fs.appendFileSync(
+      './day20.debug.log',
+      `${i}${i < 10 ? ' ' : ''}${i < 100 ? ' ' : ''}${
+        i < 1000 ? ' ' : ''
+      }  ${string} ${nextOp} y:${y} x:${x} - ${tracker.join(' ; ')}\n`
+    );
+    // console.log(string, nextOp, y, x, i, tracker);
     i = next + 1;
   }
-  printMap(map);
+  // printMap(map, true);
   console.log('Answer1:');
 };
 
