@@ -4,8 +4,8 @@ const start = new Date().getTime();
 
 const init = () => {
   const getData = () => {
-    // const input = fs.readFileSync('./day20.txt');
-    const input = fs.readFileSync('./test.txt');
+    const input = fs.readFileSync('./day20.txt');
+    // const input = fs.readFileSync('./test.txt');
     return input.toString().split('\n');
   };
 
@@ -145,28 +145,16 @@ const printMap = (map, file = false) => {
   }
 };
 
-const part1 = () => {
-  const [input] = init()[0];
-  // initialize map
-  const map = [];
-  let y = 0;
-  let x = 0;
-  addRoom(map, [y, x]);
-  map[y][x] = 'X';
-  // get first steps and initialize root
-  let i = 1;
-  let next = nextOperatorIndex(input, i);
-  let string = input.slice(i, next);
-  const root = new Tree(string, [y, x]);
-  root.walk(map);
-  let current = root;
+const run = (map, input, current, i) => {
   while (true) {
-    [y, x] = current.end;
-    i = next + 1;
-    next = nextOperatorIndex(input, i);
-    let nextOp = input[next];
-    string = input.slice(i, next);
-    let child = new Tree(string, [y, x], current);
+    if (!current) {
+      console.log(current, i);
+    }
+    const point = current.end;
+    const next = nextOperatorIndex(input, i);
+    const nextOp = input[next];
+    const string = input.slice(i, next);
+    const child = new Tree(string, point, current);
     if (string.length > 0) {
       // let's walk if we have a string
       child.walk(map);
@@ -175,34 +163,80 @@ const part1 = () => {
     if (nextOp === '(') {
       // set child as current, crawling tree
       current = child;
-    }
-    if (nextOp === '|') {
+    } else if (nextOp === '|') {
       // don't do anything? unless next op there after is )
       if (input[next + 1] === ')' && palindrome(string)) {
         // doing some funky stuff if it's a palindrome
-        i = next + 2;
-        next = nextOperatorIndex(input, i);
-        nextOp = input[next];
-        string = input.slice(i, next);
-        if (string.length > 0) {
-          child = new Tree(string, [y, x], current);
-          child.walk(map);
-          current.addChild(child);
-        }
-        if (nextOp === '|') {
+        const thirdOp = input[next + 2];
+        // if closing paren next goto parent
+        if (thirdOp === ')') {
           current = current.parent;
+        } else if (thirdOp === '(') {
+          // need a new root
+          i = subroutine(map, input, next + 3, current);
+          continue;
+        } else {
+          const newnext = nextOperatorIndex(input, next + 2);
+          const newnextOp = input[newnext];
+          const newstring = input.slice(next + 2, newnext);
+          if (newnextOp === '|' || newnextOp === ')') {
+            const newChild = new Tree(newstring, point, current);
+            newChild.walk(map);
+            current.addChild(newChild);
+            current = current.parent;
+            if (newnextOp === ')') {
+              current = current.parent;
+            }
+            i = newnext + 1;
+            continue;
+          } else if (newnextOp === '(') {
+            i = subroutine(map, input, next + 2, current);
+            continue;
+          }
         }
-        // need more funky stuff here, maybe recursion
+        // if string and next operator after that is | we only need one more child
       }
-    }
-    if (nextOp === ')') {
-      // current done, go to parent
+    } else if (nextOp === ')') {
+      // current done, go to parent, return if parent is root
       current = current.parent;
       if (current.isRoot()) {
-        break;
+        return [current, next + 1];
       }
     }
+    i = next + 1;
   }
+};
+const newRoot = (input, i, start) => {
+  const next = nextOperatorIndex(input, i);
+  const string = input.slice(i, next);
+  return new Tree(string, start);
+};
+const subroutine = (map, input, i, current) => {
+  const root = newRoot(input, i, current.end);
+  if (i > 500) {
+    console.log(i, root);
+  }
+  root.walk(map);
+  const [newChild, newIndex] = run(map, input, root, nextOperatorIndex(input, i) + 1);
+  newChild.parent = current;
+  current.addChild(newChild);
+  current = current.parent;
+  return newIndex;
+};
+
+const part1 = () => {
+  const [input] = init()[0];
+  // initialize map
+  const map = [];
+  let y = 0;
+  let x = 0;
+  let i = 1;
+  addRoom(map, [y, x]);
+  map[y][x] = 'X';
+  // get first steps and initialize root
+  const root = newRoot(input, i, [y, x]);
+  root.walk(map);
+  run(map, input, root, nextOperatorIndex(input, i) + 1);
   printMap(map);
   console.log('Answer1:');
 };
