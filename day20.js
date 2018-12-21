@@ -4,13 +4,46 @@ const start = new Date().getTime();
 
 const init = () => {
   const getData = () => {
-    const input = fs.readFileSync('./day20.txt');
-    // const input = fs.readFileSync('./test.txt');
+    // const input = fs.readFileSync('./day20.txt');
+    const input = fs.readFileSync('./test.txt');
     return input.toString().split('\n');
   };
 
   const input = getData();
   return [input];
+};
+
+const Tree = function(string, start, parent = null) {
+  this.string = string;
+  this.start = start;
+  this.end = start;
+  this.parent = parent;
+  this.children = [];
+};
+Tree.prototype.addChild = function(child) {
+  this.children.push(child);
+};
+Tree.prototype.isRoot = function() {
+  return this.parent === null;
+};
+Tree.prototype.walk = function(map) {
+  this.end = walk(this.string, map, this.start);
+};
+Tree.prototype.getValue = function() {
+  const value = palindrome(this.string) ? this.string.length / 2 : this.string.length;
+  return this.children.length === 0
+    ? value
+    : this.children.reduce((acc, child) => (acc += child.getValue()), value);
+};
+// object for reverse check
+const r = { N: 'S', E: 'W', W: 'E', S: 'N' };
+const palindrome = string => {
+  return string.length % 2 !== 0
+    ? false
+    : string
+        .split('')
+        .reverse()
+        .every((char, i) => string[i] === r[char]);
 };
 
 const addRoom = (map, [y, x]) => {
@@ -94,6 +127,7 @@ const printMap = (map, file = false) => {
     minX = lowX < minX ? lowX : minX;
     maxX = highX > maxX ? highX : maxX;
   }
+  console.log(minX, maxX, minY, maxY);
   for (let y = minY; y <= maxY; y++) {
     if (!map[y]) {
       console.log(y, 'is not in map');
@@ -104,7 +138,7 @@ const printMap = (map, file = false) => {
       line += map[y][x] || '%';
     }
     if (file) {
-      fs.appendFileSync('./day20.debug.log', line.replace(/\?/g, '#') + '\n');
+      fs.appendFileSync('./day20.debug.map.log', line.replace(/\?/g, '#') + '\n');
     } else {
       console.log(line.replace(/\?/g, '#'));
     }
@@ -113,51 +147,63 @@ const printMap = (map, file = false) => {
 
 const part1 = () => {
   const [input] = init()[0];
+  // initialize map
   const map = [];
   let y = 0;
   let x = 0;
-  let i = 1;
-  const tracker = [];
   addRoom(map, [y, x]);
   map[y][x] = 'X';
+  // get first steps and initialize root
+  let i = 1;
+  let next = nextOperatorIndex(input, i);
+  let string = input.slice(i, next);
+  const root = new Tree(string, [y, x]);
+  root.walk(map);
+  let current = root;
   while (true) {
-    let next = nextOperatorIndex(input, i);
-    if (next === Infinity) {
-      break;
-    }
-    const nextOp = input[next];
-    const string = input.slice(i, next);
-    if (string.length > 0) {
-      if (nextOp === '|') {
-        walk(string, map, [y, x]);
-        input[i - 1] === ')' ? ([y, x] = tracker.pop()) : tracker.pop();
-      } else if (nextOp === '(') {
-        [y, x] = walk(string, map, [y, x]);
-        tracker.push([y, x]);
-      } else if (nextOp === ')') {
-        [y, x] = walk(string, map, [y, x]);
-      } else {
-        console.log('I forgot something', string, nextOp);
-      }
-    } else {
-      if (nextOp === '|' && tracker.length > 0) {
-        [y, x] = tracker.pop();
-      } else if (nextOp === '(') {
-        tracker.push([y, x]);
-      } else if (nextOp === '|' && tracker.length === 0) {
-        console.log('FAIL', i);
-      }
-    }
-    fs.appendFileSync(
-      './day20.debug.log',
-      `${i}${i < 10 ? ' ' : ''}${i < 100 ? ' ' : ''}${
-        i < 1000 ? ' ' : ''
-      }  ${string} ${nextOp} y:${y} x:${x} - ${tracker.join(' ; ')}\n`
-    );
-    // console.log(string, nextOp, y, x, i, tracker);
+    [y, x] = current.end;
     i = next + 1;
+    next = nextOperatorIndex(input, i);
+    let nextOp = input[next];
+    string = input.slice(i, next);
+    let child = new Tree(string, [y, x], current);
+    if (string.length > 0) {
+      // let's walk if we have a string
+      child.walk(map);
+      current.addChild(child);
+    }
+    if (nextOp === '(') {
+      // set child as current, crawling tree
+      current = child;
+    }
+    if (nextOp === '|') {
+      // don't do anything? unless next op there after is )
+      if (input[next + 1] === ')' && palindrome(string)) {
+        // doing some funky stuff if it's a palindrome
+        i = next + 2;
+        next = nextOperatorIndex(input, i);
+        nextOp = input[next];
+        string = input.slice(i, next);
+        if (string.length > 0) {
+          child = new Tree(string, [y, x], current);
+          child.walk(map);
+          current.addChild(child);
+        }
+        if (nextOp === '|') {
+          current = current.parent;
+        }
+        // need more funky stuff here, maybe recursion
+      }
+    }
+    if (nextOp === ')') {
+      // current done, go to parent
+      current = current.parent;
+      if (current.isRoot()) {
+        break;
+      }
+    }
   }
-  // printMap(map, true);
+  printMap(map);
   console.log('Answer1:');
 };
 
