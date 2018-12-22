@@ -4,8 +4,8 @@ const start = new Date().getTime();
 
 const init = () => {
   const getData = () => {
-    const input = fs.readFileSync('./day20.txt');
-    // const input = fs.readFileSync('./test.txt');
+    const filename = process.argv[2] || 'test';
+    const input = fs.readFileSync(`./${filename}.txt`);
     return input.toString().split('\n');
   };
 
@@ -144,7 +144,10 @@ const printMap = (map, file = false) => {
     }
   }
 };
-
+const checkDeadEnd = (input, i) => {
+  const nextClosing = input.indexOf(')', i);
+  const bracket = input.slice(i, nextClosing + 1);
+};
 const run = (map, input, current, i) => {
   while (true) {
     if (!current) {

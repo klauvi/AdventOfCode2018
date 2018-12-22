@@ -1,0 +1,23 @@
+{
+  "name": "AdventOfCode2018",
+  "version": "1.0.0",
+  "description": "Advent calendar 2018 [https://adventofcode.com/](https://adventofcode.com/)",
+  "main": "day1.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/klauvi/AdventOfCode2018.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/klauvi/AdventOfCode2018/issues"
+  },
+  "homepage": "https://github.com/klauvi/AdventOfCode2018#readme",
+  "dependencies": {
+    "@types/node": "^10.12.18"
+  }
+}

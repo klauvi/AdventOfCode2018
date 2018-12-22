@@ -4,8 +4,8 @@ const start = new Date().getTime();
 
 const init = () => {
   const getData = () => {
-    const input = fs.readFileSync('./changeme.txt');
-    // const input = fs.readFileSync('./test.txt');
+    const filename = process.argv[2] || 'test';
+    const input = fs.readFileSync(`./${filename}.txt`);
     return input.toString().split('\n');
   };
 
@@ -14,7 +14,7 @@ const init = () => {
 };
 
 const part1 = () => {
-  // insert part1 here, remember to change input filename
+  // insert part1 here
   console.log('Answer1:');
 };
 
