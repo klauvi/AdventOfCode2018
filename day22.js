@@ -17,12 +17,18 @@ const erosionLevel = (map, y, x) => {
   if (x === 0) {
     return (y * mulY + depth) % modulo;
   }
+  if (!map[y]) {
+    map[y] = [];
+  }
   if (!map[y][x - 1]) {
     for (let i = 0; i < x; i++) {
       if (!map[y][i]) {
         map[y][i] = erosionLevel(map, y, i);
       }
     }
+  }
+  if (!map[y - 1]) {
+    map[y - 1] = [];
   }
   if (!map[y - 1][x]) {
     for (let i = 0; i < y; i++) {
@@ -48,14 +54,41 @@ const part1 = () => {
   console.log('Answer1:', answer1);
 };
 
-const getNeighbors = (map, [x, y, tool]) => {
-  const neighbors = [];
-  if (y > 0) {
+const tools = ['CT', 'CN', 'TN'];
+const getNBcost = (map, y, x, tool) => {
+  if (!map[y]) {
+    map[y] = [];
   }
+  const erosion = map[y] && map[y][x] ? map[y][x] : erosionLevel(map, y, x);
+  map[y][x] = erosion;
+  const possibleTools = tools[erosion % 3];
+  if (possibleTools.indexOf(tool) !== -1) {
+    return [1, y, x, tool];
+  } else {
+    return [Infinity, y, x, tool];
+  }
+};
+const getNeighbors = (map, [y, x, tool]) => {
+  y = Number(y);
+  x = Number(x);
+  // Add current spot with different tool
+  const neighbors = [[7, y, x, tools[erosionLevel(map, y, x) % 3].replace(tool, '')]];
+  if (y > 0) {
+    // add cell above with both available tools
+    neighbors.push(getNBcost(map, y - 1, x, tool));
+  }
+  if (x > 0) {
+    // add left cell with both available tools
+    neighbors.push(getNBcost(map, y, x - 1, tool));
+  }
+  // add cell below with both available tools
+  neighbors.push(getNBcost(map, y + 1, x, tool));
+  // add right cell with both available tools
+  neighbors.push(getNBcost(map, y, x + 1, tool));
   return neighbors;
 };
 const distance = ([x1, y1], [x2, y2]) => Math.abs(x1 - x2) + Math.abs(y1 - y2);
-const reachable = (map, start, goal) => {
+const shortestPath = (map, start, goal) => {
   let currentTool = 'T';
   const startString = start.join(',') + ',' + currentTool;
   const goalString = goal.join(',') + ',' + currentTool;
@@ -79,19 +112,24 @@ const reachable = (map, start, goal) => {
     });
     if (current === goalString) {
       const path = [current];
+      const distance = gScore[current];
       while (cameFrom[current]) {
         current = cameFrom[current];
         path.push(current);
       }
-      return path;
+      return [path, distance];
     }
     openSet.delete(current);
     closedSet.add(current);
+    // @ts-ignore
     const neighbors = getNeighbors(map, current.split(','));
-    for (let point of neighbors) {
+    for (let [cost, ...point] of neighbors) {
+      if (cost === Infinity) {
+        continue;
+      }
       const nbString = point.join(',');
       if (!closedSet.has(nbString)) {
-        const tentative_gScore = gScore[current] + 1;
+        const tentative_gScore = gScore[current] + cost;
         if (!openSet.has(nbString)) {
           openSet.add(nbString);
           fScore[nbString] = Infinity;
@@ -101,16 +139,17 @@ const reachable = (map, start, goal) => {
         }
         cameFrom[nbString] = current;
         gScore[nbString] = tentative_gScore;
-        fScore[nbString] = gScore[nbString] + distance(point, goal);
+        fScore[nbString] = gScore[nbString] + distance([point[0], point[1]], goal);
       }
     }
   }
-  return false;
+  return [false, 0];
 };
 
 const part2 = () => {
-  // insert part2 here, remember to refactor part1 to help with part2 solution 😊
-  console.log('Answer2:');
+  const map = [[]];
+  const [path, distance] = shortestPath(map, [0, 0], [701, 7]);
+  console.log('Answer2:', distance);
 };
 
 part1();
@@ -123,4 +162,9 @@ console.log(`First part in ${int - start}ms`);
 console.log(`Second part in ${end - int}ms`);
 
 /*
+Answer1: 5637
+Answer2: 969
+Finished in 13108ms
+First part in 8ms
+Second part in 13100ms
  */
