@@ -88,6 +88,9 @@ Node 10 plain JS
   - Second part in 64ms
 - Day 20
 - Day 21
+  - Finished in 2331527ms (almost 40 minutes)
+  - First part in 13ms
+  - Second part in 2331514ms
 - Day 22
   - Finished in 13108ms
   - First part in 8ms
