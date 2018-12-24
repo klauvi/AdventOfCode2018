@@ -1,3 +1,4 @@
+// @ts-nocheck
 const fs = require('fs');
 
 const start = new Date().getTime();
@@ -32,33 +33,24 @@ const init = () => {
     let weakness = [];
     let immunity = [];
     if (line.indexOf('(') !== -1) {
-      const strengths = line.slice(line.indexOf('(') + 1, line.indexOf(')'));
-      if (strengths.indexOf(';') !== -1) {
-        const [weak, immune] = strengths.split(';');
-        weakness = weak
-          .slice(8)
-          .split(',')
-          .map(v => v.trim());
-        immunity = immune
-          .slice(10)
-          .split(',')
-          .map(v => v.trim());
-      } else {
-        weakness =
-          strengths.indexOf('weak') === 0
-            ? strengths
-                .slice(8)
-                .split(',')
-                .map(v => v.trim())
-            : [];
-        immunity =
-          strengths.indexOf('immune') === 0
-            ? strengths
-                .slice(10)
-                .split(',')
-                .map(v => v.trim())
-            : [];
-      }
+      line
+        .slice(line.indexOf('(') + 1, line.indexOf(')'))
+        .split('; ')
+        .forEach(prop => {
+          // console.log(type, attackType, prop);
+          if (prop.indexOf('weak') === 0) {
+            weakness = prop
+              .replace('weak to ', '')
+              .split(',')
+              .map(v => v.trim());
+          }
+          if (prop.indexOf('immune') === 0) {
+            immunity = prop
+              .replace('immune to ', '')
+              .split(',')
+              .map(v => v.trim());
+          }
+        });
     }
     const item = new Group(type, units, hp, attack, attackType, initiative, weakness, immunity);
     groups.push(item);
@@ -76,11 +68,97 @@ const Group = function(team, units, hp, attack, attackType, initiative, weakness
   this.initiative = initiative;
   this.weakness = weakness;
   this.immunity = immunity;
+  this.target = null;
+  this.attacker = null;
+};
+Group.prototype.effectivePower = function() {
+  return this.units * this.attack;
+};
+Group.prototype.strike = function() {
+  this.target.takeHit(this.effectivePower(), this.attackType);
+};
+Group.prototype.getDamage = function(power, type) {
+  return this.immunity.indexOf(type) !== -1
+    ? 0
+    : this.weakness.indexOf(type) === -1
+    ? power
+    : power * 2;
+};
+Group.prototype.takeHit = function(power, type) {
+  this.units -= Math.floor(this.getDamage(power, type) / this.hp);
+};
+
+const getTarget = (self, current, next) => {
+  const nextDamage = next.getDamage(self.effectivePower(), self.attackType);
+  if (current === null && nextDamage !== 0) {
+    return next;
+  }
+  if (current === null) {
+    return next;
+  }
+  const currentDamage = current.getDamage(self.effectivePower(), self.attackType);
+  if (nextDamage > currentDamage) {
+    return next;
+  }
+  if (nextDamage === currentDamage && next.effectivePower() > current.effectivePower()) {
+    return next;
+  }
+  if (next.effectivePower() === current.effectivePower() && next.initiative > current.initiative) {
+    return next;
+  }
+  return current;
 };
 
 const part1 = () => {
   // insert part1 here
-  console.log('Answer1:');
+  const [groups, immune, infection] = init();
+  while (immune.size > 0 && infection.size > 0) {
+    groups.sort((a, b) =>
+      b.effectivePower() === a.effectivePower()
+        ? b.initiative - a.initiative
+        : b.effectivePower() - a.effectivePower()
+    );
+    groups.forEach(unit => {
+      if (unit.units > 0) {
+        let target = null;
+        if (unit.team === 'infection') {
+          immune.forEach(enemy => {
+            if (!enemy.attacker && enemy.units > 0) {
+              target = getTarget(unit, target, enemy);
+            }
+          });
+        }
+        if (unit.team === 'immune') {
+          infection.forEach(enemy => {
+            if (!enemy.attacker && enemy.units > 0) {
+              target = getTarget(unit, target, enemy);
+            }
+          });
+        }
+        if (target) {
+          unit.target = target;
+          target.attacker = unit;
+        }
+      }
+    });
+    groups.sort((a, b) => b.initiative - a.initiative);
+    groups.forEach(unit => {
+      if (unit.units > 0 && unit.target) {
+        unit.strike();
+        if (unit.target.units <= 0) {
+          unit.target.team === 'immune'
+            ? immune.delete(unit.target)
+            : infection.delete(unit.target);
+        }
+      }
+      unit.attacker = null;
+      unit.target = null;
+    });
+  }
+  let totalUnits = 0;
+  immune.forEach(unit => (totalUnits += unit.units > 0 ? unit.units : 0));
+  infection.forEach(unit => (totalUnits += unit.units > 0 ? unit.units : 0));
+  console.log('Answer1:', totalUnits);
 };
 
 const part2 = () => {
