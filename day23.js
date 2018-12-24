@@ -38,9 +38,46 @@ const part1 = () => {
   console.log('Answer1:', inRange);
 };
 
+const hash = (x, y, z) => `${x},${y},${z}`;
+
 const part2 = () => {
   // insert part2 here, remember to refactor part1 to help with part2 solution 😊
-  console.log('Answer2:');
+  const [input] = init();
+  const points = new Map();
+  for (let i = 0; i < input.length; i++) {
+    const point1 = input[i]
+      .split(' ')[0]
+      .match(/[-]*\d+/g)
+      .map(Number);
+    const radius1 = input[i]
+      .split(' ')[1]
+      .match(/[-]*\d+/g)
+      .map(Number)[0];
+    const inRange = [];
+    for (let line2 of input) {
+      const point2 = line2
+        .split(' ')[0]
+        .match(/[-]*\d+/g)
+        .map(Number);
+      const radius2 = line2
+        .split(' ')[1]
+        .match(/[-]*\d+/g)
+        .map(Number)[0];
+      if (distance(...point1, ...point2) <= radius1 + radius2) {
+        inRange.push(hash(...point2));
+      }
+    }
+    points.set(i, inRange.length);
+  }
+  let radius = 0;
+  let point = 0;
+  points.forEach((value, key) => {
+    if (radius < value) {
+      radius = value;
+      point = key;
+    }
+  });
+  console.log('Answer2:', radius, point);
 };
 
 part1();
